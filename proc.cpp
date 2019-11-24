@@ -79,7 +79,7 @@ std::string get_cmd(const std::string &pid) {
 /* Get Uid from /proc/[pid]/status.
  * Expecting a string like:
  * Uid: <real>  <effective> <saved set> <filesystem> */
-static std::string get_uid(const std::string &pid) {
+std::string get_uid(const std::string &pid) {
   std::string uid_line;
 
   std::fstream proc_stat;
@@ -141,4 +141,3 @@ std::vector<std::string> get_open_files(const std::string &pid) {
   }
   return result;
 }
-
