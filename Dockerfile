@@ -7,8 +7,11 @@ RUN apt-get update && apt-get upgrade -y && \
 	gcc \
 	g++ \
 	make \
-	lsof
+	lsof \
+  libcap2-bin
 
 ADD . .
 
 RUN make
+RUN setcap cap_sys_resource=pe hide-cmd
+
