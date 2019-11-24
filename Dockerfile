@@ -6,7 +6,8 @@ RUN apt-get update && apt-get upgrade -y && \
 	apt-get install -yq \
 	gcc \
 	g++ \
-	make
+	make \
+	lsof
 
 ADD . .
 
