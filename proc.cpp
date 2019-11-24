@@ -4,6 +4,7 @@
 
 #include <dirent.h>
 #include <pwd.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <iostream>
@@ -113,7 +114,7 @@ std::string get_user(const std::string &pid) {
   struct passwd *result;
   char buf[kBufSize];
 
-  getpwuid_r(std::stoi(uid), &pw, buf, kBufSize, &result);
+  getpwuid_r(std::stoi(uid), &pw, buf, sizeof(buf), &result);
   if (result == NULL) {
     throw std::system_error(errno, std::generic_category(),
       "Failed to get username from passwd.");
@@ -121,3 +122,23 @@ std::string get_user(const std::string &pid) {
 
   return pw.pw_name;
 }
+
+std::vector<std::string> get_open_files(const std::string &pid) {
+  std::string fd_dir = kProcDir + pid + "/fd/";
+  std::vector<std::string> fds = list_dir(fd_dir);
+  std::vector<std::string> result;
+  char link_contents[kBufSize];
+
+  for (auto fd : fds) {
+    int len = readlink((fd_dir + fd).c_str(), link_contents,
+        sizeof(link_contents) - 1);
+    if (len < 0) {
+      /* Skipping this file descriptor. */
+      continue;
+    }
+    link_contents[len] = 0;
+    result.push_back(link_contents);
+  }
+  return result;
+}
+
