@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <iostream>
+#include <cstring>
+#include <fstream>
 
 
 const char kProcDir[] = "/proc/";
@@ -48,4 +50,24 @@ std::vector<std::string> get_pids() {
       filenames.end());
 
   return filenames;
+}
+
+/* Returns the complete command line for the process from 
+ * /proc/[pid]/cmdline. */
+std::string get_cmd(const std::string &pid) {
+  std::string result;
+
+  std::fstream cmdline;
+  std::string filename = kProcDir + pid + "/cmdline";
+  cmdline.open(filename);
+
+  /* The command-line arguments appear as a set of strings separated by '\0',
+   * with a further null byte after the last string. */
+  while (!cmdline.eof()) {
+    std::string line;
+    std::getline(cmdline, line);
+    result += line;
+  }
+
+  return result;
 }
