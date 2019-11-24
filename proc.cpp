@@ -3,14 +3,17 @@
 #include "./proc.h"
 
 #include <dirent.h>
+#include <pwd.h>
 
 #include <algorithm>
 #include <iostream>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 
 
 const char kProcDir[] = "/proc/";
+const size_t kBufSize = 1024;
 
 static std::vector<std::string> list_dir(const std::string &dirname) {
   DIR *dir = opendir(dirname.c_str());
@@ -52,7 +55,7 @@ std::vector<std::string> get_pids() {
   return filenames;
 }
 
-/* Returns the complete command line for the process from 
+/* Returns the complete command line for the process from
  * /proc/[pid]/cmdline. */
 std::string get_cmd(const std::string &pid) {
   std::string result;
@@ -70,4 +73,51 @@ std::string get_cmd(const std::string &pid) {
   }
 
   return result;
+}
+
+/* Get Uid from /proc/[pid]/status.
+ * Expecting a string like:
+ * Uid: <real>  <effective> <saved set> <filesystem> */
+static std::string get_uid(const std::string &pid) {
+  std::string uid_line;
+
+  std::fstream proc_stat;
+  std::string filename = kProcDir + pid + "/status";
+  proc_stat.open(filename);
+
+  while (!proc_stat.eof()) {
+    getline(proc_stat, uid_line);
+    if (uid_line.find("Uid:") == 0) {
+      break;
+    }
+  }
+
+  if (proc_stat.eof()) {
+    std::stringstream err;
+    err << "UID is not provided in /proc/" << pid.c_str() << "/status";
+    throw std::runtime_error(err.str());
+  }
+
+  /* We are interested in the real Uid. */
+  size_t first_delim = uid_line.find("\t");
+  size_t second_delim = uid_line.find("\t", first_delim + 1);
+  size_t substr_len = second_delim - first_delim - 1;
+
+  return uid_line.substr(first_delim + 1, substr_len);
+}
+
+std::string get_user(const std::string &pid) {
+  std::string uid = get_uid(pid);
+
+  struct passwd pw;
+  struct passwd *result;
+  char buf[kBufSize];
+
+  getpwuid_r(std::stoi(uid), &pw, buf, kBufSize, &result);
+  if (result == NULL) {
+    throw std::system_error(errno, std::generic_category(),
+      "Failed to get username from passwd.");
+  }
+
+  return pw.pw_name;
 }

@@ -5,9 +5,10 @@
 #include "./proc.h"
 
 int main() {
-  std::cout << "COMMAND" << '\t' << "PID" << std::endl;
+  std::cout << "COMMAND" << '\t' << "PID" << '\t' << "USER" << std::endl;
   for (auto pid : get_pids()) {
-    std::cout << get_cmd(pid) << '\t' << pid << std::endl;
+    std::cout << get_cmd(pid) << '\t' << pid << '\t' << get_user(pid)
+      << std::endl;
   }
 
   return 0;
