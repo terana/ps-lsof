@@ -16,7 +16,7 @@ proc.o: proc.h proc.cpp
 	$(CXX)  proc.cpp $(CXXFLAGS) -c -o proc.o
 
 run_docker:
-	docker build -t ps-lsof . && docker run -it --rm ps-lsof bash
+	docker build -t ps-lsof . && docker run -it --rm --privileged ps-lsof bash
 
 clean:
 	rm -f $(OBJS) ps
