@@ -20,7 +20,7 @@ static std::vector<std::string> list_dir(const std::string &dirname) {
   DIR *dir = opendir(dirname.c_str());
   if (dir == NULL) {
     throw std::system_error(errno, std::generic_category(),
-      "Failed to open /proc/");
+      "Failed to open " + dirname);
   }
 
   std::vector<std::string> result;
@@ -65,6 +65,10 @@ std::string get_cmd(const std::string &pid) {
   std::string filename = kProcDir + pid + "/cmdline";
   cmdline.open(filename);
 
+  if(!cmdline.is_open()) {
+    throw std::runtime_error("Failed to open " + filename);
+  }
+
   /* The command-line arguments appear as a set of strings separated by '\0',
    * with a further null byte after the last string. */
   while (!cmdline.eof()) {
@@ -85,6 +89,10 @@ std::string get_uid(const std::string &pid) {
   std::fstream proc_stat;
   std::string filename = kProcDir + pid + "/status";
   proc_stat.open(filename);
+
+  if(!proc_stat.is_open()) {
+    throw std::runtime_error("Failed to open " + filename);
+  }
 
   while (!proc_stat.eof()) {
     getline(proc_stat, uid_line);

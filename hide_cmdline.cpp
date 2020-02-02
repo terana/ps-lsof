@@ -31,5 +31,7 @@ int main(int argc, char **argv) {
   std::cout << "/proc/" << pid.str() << "/cmdline: " << get_cmd(pid.str())
     << std::endl;
 
+  std::cout << "argv[1] " << argv[1] << '\n';
+
   return 0;
 }
